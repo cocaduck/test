@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D 跳動雙層愛心點雲</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+  </style>
+</head>
+<body>
+
+<script src="three.min.js"></script>
+<script src="OrbitControls.js"></script>
+
+<script>
+// 場景、相機、渲染器
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.z = 50;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+// 愛心參數點雲函數
+function createHeartPoints(pointCount, scale, color) {
+  const geometry = new THREE.BufferGeometry();
+  const positions = [];
+
+  for (let i = 0; i < pointCount; i++) {
+    const t = Math.random() * Math.PI;
+    const theta = Math.random() * 2 * Math.PI;
+
+    const r = 16 * Math.pow(Math.sin(t), 3);
+    const x = scale * r * Math.cos(theta);
+    const y = scale * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * Math.sin(theta);
+    const z = scale * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * Math.cos(theta);
+
+    positions.push(x, y, z);
+  }
+
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+  const material = new THREE.PointsMaterial({ color: color, size: 0.5 });
+  return new THREE.Points(geometry, material);
+}
+
+// 內外兩層愛心
+const innerHeart = createHeartPoints(3000, 0.5, 0xff6699);
+const outerHeart = createHeartPoints(3000, 0.6, 0xffccff);
+
+scene.add(innerHeart);
+scene.add(outerHeart);
+
+// 光源
+const light = new THREE.PointLight(0xffffff, 1);
+light.position.set(50, 50, 50);
+scene.add(light);
+
+// 動畫
+let clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  let time = clock.getElapsedTime();
+
+  let scaleIn = 1 + 0.05 * Math.sin(time * 4);
+  let scaleOut = 1 - 0.05 * Math.sin(time * 4);
+
+  innerHeart.scale.set(scaleIn, scaleIn, scaleIn);
+  outerHeart.scale.set(scaleOut, scaleOut, scaleOut);
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>

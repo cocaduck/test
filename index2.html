@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D 跳動愛心</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+  </style>
+</head>
+<body>
+
+<script src="three.min.js"></script>
+<script src="OrbitControls.js"></script>
+
+<script>
+// 場景、相機、渲染器
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.z = 30;
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+// 建立愛心 Shape
+const x = 0, y = 0;
+const heartShape = new THREE.Shape();
+heartShape.moveTo(x + 5, y + 5);
+heartShape.bezierCurveTo(x + 5, y + 5, x + 4, y, x, y);
+heartShape.bezierCurveTo(x - 6, y, x - 6, y + 7, x - 6, y + 7);
+heartShape.bezierCurveTo(x - 6, y + 11, x - 3, y + 15.4, x + 5, y + 19);
+heartShape.bezierCurveTo(x + 13, y + 15.4, x + 16, y + 11, x + 16, y + 7);
+heartShape.bezierCurveTo(x + 16, y + 7, x + 16, y, x + 10, y);
+heartShape.bezierCurveTo(x + 7, y, x + 5, y + 5, x + 5, y + 5);
+
+// 擠出厚度
+const extrudeSettings = {
+  depth: 4,
+  bevelEnabled: true,
+  bevelSegments: 2,
+  steps: 2,
+  bevelSize: 1,
+  bevelThickness: 1
+};
+
+const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+
+// 材質
+const material = new THREE.MeshPhongMaterial({ color: 0xff3366, shininess: 100, flatShading: true });
+const heart = new THREE.Mesh(geometry, material);
+heart.geometry.center();
+scene.add(heart);
+
+// 光源
+const ambientLight = new THREE.AmbientLight(0x888888);
+scene.add(ambientLight);
+
+const pointLight = new THREE.PointLight(0xffffff, 1);
+pointLight.position.set(50, 50, 50);
+scene.add(pointLight);
+
+// 動畫
+let clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  let time = clock.getElapsedTime();
+  let scale = 1 + 0.1 * Math.sin(time * 4);
+  heart.scale.set(scale, scale, scale);
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>
